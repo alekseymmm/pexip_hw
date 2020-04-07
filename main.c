@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-
+#include <math.h>
 #include <jpeglib.h>
 
 
@@ -122,15 +122,53 @@ int libjpeg_write_file(char *file_name, JSAMPARRAY img, int width, int height)
 	return 0;
 }
 
+
+int rotate_img(JSAMPARRAY src, int width, int height, float a, JSAMPARRAY dst)
+{
+	int x_new, y_new;
+	int x_old, y_old;
+	int x_dif, y_dif;
+	int xc = width / 2;
+	int yc = height / 2;
+	float cosa = cos(a);
+	float sina = sin(a);
+
+	for (y_new = 0; y_new < height; y_new++) {
+		for (x_new = 0; x_new < width; x_new++) {
+			x_dif = x_new - xc;
+			y_dif = y_new - yc;
+
+			x_old = xc + (x_dif * cosa - y_dif * sina);
+			y_old = yc + (x_dif * cosa + y_dif * sina);
+			if (x_old < 0 || x_old >= width)
+				continue;
+			if (y_old < 0 || y_old >= height)
+				continue;
+
+			dst[y_new][x_new * 3] = src[y_old][x_old * 3];
+			dst[y_new][x_new * 3 + 1] = src[y_old][x_old * 3 + 1];
+			dst[y_new][x_new * 3 + 2] = src[y_old][x_old * 3 + 2];
+
+		}
+	}
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	int rc = 0;
 	int width, height;
 	JSAMPARRAY img = NULL;
+	JSAMPARRAY rot_img = NULL;
 
 	rc = libjpeg_read_file(INPUT_FILE_NAME, &img, &width, &height);
 
-	rc = libjpeg_write_file(OUTPUT_FILE_NAME, img, width, height);
+	rot_img = alloc_img_buf(width * 3, height);
+	rotate_img(img, width, height, M_PI / 3, rot_img);
+	rc = libjpeg_write_file(OUTPUT_FILE_NAME, rot_img, width, height);
+
+	free_img_buf(rot_img, width, height);
 	free_img_buf(img, width, height);
 	return rc;
 }
