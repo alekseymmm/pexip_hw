@@ -9,6 +9,7 @@
 
 
 #define INPUT_FILE_NAME  "jpg-example.jpg"
+//##define INPUT_FILE_NAME  "unnamed.jpg"
 #define OUTPUT_FILE_NAME  "out.jpg"
 
 JSAMPARRAY alloc_img_buf(int w, int h)
@@ -184,6 +185,32 @@ int point_in_triangle(struct point *pt, struct point *v1, struct point *v2,
     return !(has_neg && has_pos);
 }
 
+int point_in_triangle2(struct point *pt, struct point *v1, struct point *v2,
+		      struct point *v3)
+{
+	float area;
+	float s, t;
+	area = 0.5 *(-v2->y*v3->x + v1->y*(-v2->x + v3->x) + v1->x*(v2->y - v3->y) + v2->x*v3->y);
+	s = 1/(2*area)*(v1->y*v3->x - v1->x*v3->y + (v3->y - v1->y)*pt->x + (v1->x - v3->x)*pt->y);
+	t = 1/(2*area)*(v1->x*v2->y - v1->y*v2->x + (v1->y - v2->y)*pt->x + (v2->x - v1->x)*pt->y);
+
+	return (s > 0 && t > 0 && (1-s-t > 0));
+}
+#if 0
+bool intpoint_inside_trigon(intPoint s, intPoint a, intPoint b, intPoint c)
+{
+    int as_x = s.x-a.x;
+    int as_y = s.y-a.y;
+
+    bool s_ab = (b.x-a.x)*as_y-(b.y-a.y)*as_x > 0;
+
+    if((c.x-a.x)*as_y-(c.y-a.y)*as_x > 0 == s_ab) return false;
+
+    if((c.x-b.x)*(s.y-b.y)-(c.y-b.y)*(s.x-b.x) > 0 != s_ab) return false;
+
+    return true;
+}
+#endif
 void crop_img_lower_triangle(JSAMPARRAY img, int width, int height)
 {
 	int x, y;
@@ -196,10 +223,10 @@ void crop_img_lower_triangle(JSAMPARRAY img, int width, int height)
 
 	x_dif = tan(M_PI / 6) * height / 2;
 
-	v2.x = v1.x - x_dif;
+	v2.x = v1.x - x_dif - 2;
 	v2.y = height;
 
-	v3.x = v1.x + x_dif;
+	v3.x = v1.x + x_dif + 2;
 	v3.y = height;
 
 	for (y = 0; y < height; y++) {
@@ -207,9 +234,15 @@ void crop_img_lower_triangle(JSAMPARRAY img, int width, int height)
 			pt.x = x;
 			pt.y = y;
 			if (!point_in_triangle(&pt, &v1, &v2, &v3)) {
+				/*
 				img[y][x * 3] = 0;
 				img[y][x * 3 + 1] = 0;
 				img[y][x * 3 + 2] = 0;
+				*/
+				float coef = 0.3;
+				img[y][x * 3] = img[y][x * 3] * coef;
+				img[y][x * 3 + 1] = img[y][x * 3 + 1] * coef;
+				img[y][x * 3 + 2] = img[y][x * 3 + 2] * coef;
 			}
 		}
 	}
@@ -276,25 +309,33 @@ int fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 	struct point v[3];
 	struct point new_v;
 
-	float cosa = cos(M_PI / 3);
-	float sina = sin(M_PI / 3);
+	int i;
 
-	v[0].x = width / 2;
-	v[0].y = height / 2;
+	v[0].x = width / 2 ;
+	v[0].y = height / 2 ;
 
 	x_dif = tan(M_PI / 6) * height / 2;
 
 	v[1].x = v[0].x - x_dif;
 	v[1].y = height;
 
-	v[2].x = v[0].x + x_dif;
+	v[2].x = v[0].x + x_dif ;
 	v[2].y = height;
 // initial triangle filled
-	rotate_point(&v[2], width, height, &new_v, true);
-	v[1] = v[2];
-	v[2] = new_v;
+	for (i = 0; i < 5; i++) {
+//		rotate_point(&v[0], width, height, &new_v, true);
+//		v[0] = new_v;
+//
+//		rotate_point(&v[1], width, height, &new_v, true);
+//		v[1] = new_v;
 
-	fill_triangle(img, width, height, v);
+		rotate_point(&v[2], width, height, &new_v, true);
+//		v[2] = new_v;
+		v[1] = v[2];
+		v[2] = new_v;
+
+		fill_triangle(img, width, height, v);
+	}
 }
 
 int main(int argc, char **argv)
