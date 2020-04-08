@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdbool.h>
+#include <sys/param.h>
 
 #include <jpeglib.h>
 
@@ -219,14 +220,14 @@ void crop_img_lower_triangle(JSAMPARRAY img, int width, int height)
 	struct point v2, v3;
 
 	v1.x = width / 2;
-	v1.y = height / 2;
+	v1.y = height / 2 - 4;
 
 	x_dif = tan(M_PI / 6) * height / 2;
 
-	v2.x = v1.x - x_dif - 2;
+	v2.x = v1.x - x_dif - 4;
 	v2.y = height;
 
-	v3.x = v1.x + x_dif + 2;
+	v3.x = v1.x + x_dif + 4;
 	v3.y = height;
 
 	for (y = 0; y < height; y++) {
@@ -257,7 +258,7 @@ void rotate_point(struct point *pt, int width, int height, struct point *res,
 	int xc = width / 2;
 	int yc = height / 2;
 
-	float a = M_PI / 3;
+	float a =  M_PI / 3;
 	float cosa = cos(a);
 	float sina = sin(a);
 
@@ -275,7 +276,8 @@ void rotate_point(struct point *pt, int width, int height, struct point *res,
 	res->y = y_new;
 }
 
-int fill_triangle(JSAMPARRAY img, int width, int height, struct point *v)
+int fill_triangle(JSAMPARRAY img, int width, int height, struct point *v,
+		  bool counterclockwise)
 {
 	int x, y;
 	struct point pt;
@@ -287,7 +289,7 @@ int fill_triangle(JSAMPARRAY img, int width, int height, struct point *v)
 			if (point_in_triangle(&pt, &v[0], &v[1], &v[2])) {
 				struct point rot;
 
-				rotate_point(&pt, width, height, &rot, false);
+				rotate_point(&pt, width, height, &rot, counterclockwise);
 
 				if (rot.x < 0 || rot.x > width - 1)
 					continue;
@@ -299,6 +301,51 @@ int fill_triangle(JSAMPARRAY img, int width, int height, struct point *v)
 			}
 		}
 	}
+}
+void kernel_func(JSAMPARRAY img, int width, int height, int x, int y)
+{
+	int i;
+	int sum;
+
+	if (x < 1 || y < 1 || x + 1 == width || y + 1 == height)
+		return;
+	for (i = 0; i < 3; i++) {
+		sum = img[y-1][(x-1)*3+i]+
+		      img[y-1][x*3+i]+
+		      img[y-1][(x+1)*3+i]+
+		      img[y][(x-1)*3+i]+
+		      img[y][x*3+i]+
+		      img[y][(x+1)*3]+
+		      img[y+1][(x-1)*3+i]+
+		      img[y+1][x*3+i]+
+		      img[y+1][(x+1)*3+i];
+		img[y][x*3 +i] = sum / 9;
+	}
+}
+
+int smooth_line(JSAMPARRAY img, int width, int height,
+		struct point *v0, struct point *v1)
+{
+	float k = 0, b = 0;
+	int x, y;
+	int y_line;
+
+	if (v1->x - v0->x != 0) {
+		k = (float)(v1->y - v0->y) / (v1->x - v0->x);
+		b = v0->y - k* v0->x;
+	} else {
+		k = 0;
+		b= v0->y;
+	}
+
+	for (y = MIN(v0->y, v1->y); y < MAX(v0->y, v1->y); y++){
+		for (x = MIN(v0->x, v1->x); x < MAX(v0->x, v1->x); x++) {
+			y_line = k * x + b;
+			if (abs(y_line - y) < 2)
+				kernel_func(img, width, height, x, y);
+		}
+	}
+
 }
 
 int fill_rotated_triangles(JSAMPARRAY img, int width, int height)
@@ -322,7 +369,23 @@ int fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 	v[2].x = v[0].x + x_dif ;
 	v[2].y = height;
 // initial triangle filled
-	for (i = 0; i < 5; i++) {
+	//fill first right triangle
+
+	rotate_point(&v[2], width, height, &new_v, true);
+//		v[2] = new_v;
+	v[1] = v[2];
+	v[2] = new_v;
+	fill_triangle(img, width, height, v, false);
+
+	//fill first left triangle
+
+	v[1].x = v[0].x - x_dif;
+	v[1].y = height;
+	rotate_point(&v[1], width, height, &v[2], false);;
+	fill_triangle(img, width, height, v, true);
+
+#if 0
+	for (i = 0; i < 4; i++) {
 //		rotate_point(&v[0], width, height, &new_v, true);
 //		v[0] = new_v;
 //
@@ -335,7 +398,9 @@ int fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 		v[2] = new_v;
 
 		fill_triangle(img, width, height, v);
+//		smooth_line(img, width, height, &v[0], &v[1]);
 	}
+#endif
 }
 
 int main(int argc, char **argv)
@@ -351,8 +416,8 @@ int main(int argc, char **argv)
 
 	crop_img_lower_triangle(img, width, height);
 	fill_rotated_triangles(img, width, height);
-	//rotate_img(img, width, height, M_PI / 3, rot_img);
-
+	//rotate_img(img, width, height, -M_PI / 3, rot_img);
+	//rc = libjpeg_write_file(OUTPUT_FILE_NAME, rot_img, width, height);
 	rc = libjpeg_write_file(OUTPUT_FILE_NAME, img, width, height);
 
 	free_img_buf(rot_img, width, height);
