@@ -21,10 +21,10 @@ int img_rotate(JSAMPARRAY src, int width, int height, float a, JSAMPARRAY dst)
 		for (x_new = 0; x_new < width; x_new++) {
 			x_dif = x_new - xc;
 			//y_dif = y_new - yc;
-			y_dif = yc - y_new ;
+			y_dif = yc - y_new;
 
 			x_old = xc + (x_dif * cosa + y_dif * sina);
-			y_old = yc - (- x_dif * sina + y_dif * cosa);
+			y_old = yc - (-x_dif * sina + y_dif * cosa);
 			if (x_old < 0 || x_old >= width)
 				continue;
 			if (y_old < 0 || y_old >= height)
@@ -64,6 +64,7 @@ void img_crop_lower_triangle(JSAMPARRAY img, int width, int height)
 			pt.y = y;
 			if (!point_in_triangle(&pt, &v1, &v2, &v3)) {
 				float coef = 0.3;
+
 				img[y][x * 3] = img[y][x * 3] * coef;
 				img[y][x * 3 + 1] = img[y][x * 3 + 1] * coef;
 				img[y][x * 3 + 2] = img[y][x * 3 + 2] * coef;
@@ -80,12 +81,14 @@ int img_scale_by_half(JSAMPARRAY src, int src_w, int src_h,
 
 	if (dst_w * 2 > src_w ||
 	    dst_h * 2 > src_h) {
-		fprintf(stderr, "Wrong image sizes while scaling by half (%d,%d) and (%d,%d)\n",
+		fprintf(stderr,
+			"Wrong image sizes while scaling by half (%d,%d) and (%d,%d)\n",
 			src_w, src_h, dst_w, dst_h);
 		return -EINVAL;
 	}
 	for (y = 0; y < dst_h; y++) {
 		int y2 = 2 * y;
+
 		for (x = 0; x < dst_w; x++) {
 			int x2 = x * 2;
 			int i;
@@ -121,11 +124,11 @@ int img_fill_triangle(JSAMPARRAY img, int width, int height, struct point *v,
 
 				if (rot.x < 0 || rot.x > width - 1)
 					continue;
-				if (rot.y < 0 || rot.y > height -1)
+				if (rot.y < 0 || rot.y > height - 1)
 					continue;
-				img[y][x * 3] = img[rot.y][rot.x *3];
-				img[y][x * 3 + 1] = img[rot.y][rot.x *3 + 1];
-				img[y][x * 3 + 2] = img[rot.y][rot.x *3 + 2];
+				img[y][x * 3] = img[rot.y][rot.x * 3];
+				img[y][x * 3 + 1] = img[rot.y][rot.x * 3 + 1];
+				img[y][x * 3 + 2] = img[rot.y][rot.x * 3 + 2];
 			}
 		}
 	}
@@ -137,15 +140,15 @@ int img_fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 	int x_dif;
 	struct point v[3];
 
-	v[0].x = width / 2 ;
-	v[0].y = height / 2 ;
+	v[0].x = width / 2;
+	v[0].y = height / 2;
 
 	x_dif = tan(M_PI / 6) * height / 2;
 
 	v[1].x = v[0].x - x_dif;
 	v[1].y = height;
 
-	v[2].x = v[0].x + x_dif ;
+	v[2].x = v[0].x + x_dif;
 	v[2].y = height;
 
 	// This code could be wrapped in a loop over angles
@@ -154,7 +157,7 @@ int img_fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 	//fill first left triangle
 	v[1].x = v[0].x - x_dif;
 	v[1].y = height;
-	rotate_point(&v[1], width, height, &v[2], -M_PI / 3);;
+	rotate_point(&v[1], width, height, &v[2], -M_PI / 3);
 	img_fill_triangle(img, width, height, v, M_PI / 3);
 
 	//fill second left triangle
@@ -164,7 +167,7 @@ int img_fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 
 	v[2].x = v[0].x + x_dif;
 	v[2].y = 0;
-	img_fill_triangle(img, width, height, v, 3 * M_PI / 3 );
+	img_fill_triangle(img, width, height, v, 3 * M_PI / 3);
 
 
 	rotate_point(&v[2], width, height, &v[1], -M_PI / 3);
@@ -178,7 +181,7 @@ int img_fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 }
 
 int img_fill_main_triangle(JSAMPARRAY img, int width, int height,
-		           JSAMPARRAY scaled_img, int scaled_width,
+			   JSAMPARRAY scaled_img, int scaled_width,
 			   int scaled_height)
 {
 	int x, y;
@@ -187,6 +190,7 @@ int img_fill_main_triangle(JSAMPARRAY img, int width, int height,
 	struct point v2, v3;
 	int x_offset = width / 4;
 	int y_offset = height / 2;
+
 	v1.x = width / 2;
 	v1.y = height / 2 - 2;
 
@@ -200,6 +204,7 @@ int img_fill_main_triangle(JSAMPARRAY img, int width, int height,
 
 	for (y = 0 ; y < height ; y++) {
 		int dy = y - y_offset;
+
 		for (x = 0; x < width; x++) {
 			int dx = x - x_offset;
 
@@ -209,15 +214,15 @@ int img_fill_main_triangle(JSAMPARRAY img, int width, int height,
 			    y - y_offset >= scaled_height ||
 			    y < y_offset ||
 			    x - x_offset >= scaled_width) {
-
 				float coef = 0.3;
+
 				img[y][x * 3] = img[y][x * 3] * coef;
 				img[y][x * 3 + 1] = img[y][x * 3 + 1] * coef;
 				img[y][x * 3 + 2] = img[y][x * 3 + 2] * coef;
 			} else {
 				img[y][x * 3] = scaled_img[dy][dx * 3];
-				img[y][x * 3+ 1] = scaled_img[dy][dx * 3 + 1];
-				img[y][x * 3+ 2] = scaled_img[dy][dx * 3 + 2];
+				img[y][x * 3 + 1] = scaled_img[dy][dx * 3 + 1];
+				img[y][x * 3 + 2] = scaled_img[dy][dx * 3 + 2];
 			}
 		}
 	}
@@ -242,7 +247,7 @@ void kernel_func(JSAMPARRAY img, int width, int height, int x, int y)
 		      img[y+1][(x-1)*3+i]+
 		      img[y+1][x*3+i]+
 		      img[y+1][(x+1)*3+i];
-		img[y][x*3 +i] = sum / 9;
+		img[y][x*3+i] = sum / 9;
 	}
 }
 
@@ -255,13 +260,13 @@ int smooth_line(JSAMPARRAY img, int width, int height,
 
 	if (v1->x - v0->x != 0) {
 		k = (float)(v1->y - v0->y) / (v1->x - v0->x);
-		b = v0->y - k* v0->x;
+		b = v0->y-k*v0->x;
 	} else {
 		k = 0;
-		b= v0->y;
+		b = v0->y;
 	}
 
-	for (y = MIN(v0->y, v1->y); y < MAX(v0->y, v1->y); y++){
+	for (y = MIN(v0->y, v1->y); y < MAX(v0->y, v1->y); y++) {
 		for (x = MIN(v0->x, v1->x); x < MAX(v0->x, v1->x); x++) {
 			y_line = k * x + b;
 			if (abs(y_line - y) < 2)

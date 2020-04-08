@@ -23,8 +23,10 @@ int main(int argc, char **argv)
 	char *output_file_name;
 
 	if (argc != 3) {
-		fprintf(stderr, "Wrong number of arguments. See usage:\n");
-		fprintf(stdout, "pexip_hw <input jpg file name> <output file name>\n");
+		fprintf(stderr,
+			"Wrong number of arguments. See usage:\n");
+		fprintf(stdout,
+			"pexip_hw <input jpg file name> <output file name>\n");
 		exit(-EINVAL);
 	}
 	input_filename = argv[1];
@@ -35,15 +37,17 @@ int main(int argc, char **argv)
 	scaled_height = height / 2;
 
 	scaled_img = alloc_img_buf(scaled_width * 3, scaled_height);
-	img_scale_by_half(img, width, height, scaled_img, scaled_width, scaled_height);
+	img_scale_by_half(img, width, height,
+			  scaled_img, scaled_width, scaled_height);
 
 	/* Instead of scaling myself, I can use scaling API from libjpeg-turbo
 	 * and scale image while decoding. but I am not sure this is allowed
 	 * here. But it works.
 	 */
-//	rc = libjpeg_read_file_scaled(input_filename, &scaled_img, &scaled_width,
-//			 	      &scaled_height);
-	img_fill_main_triangle(img, width, height, scaled_img, scaled_width, scaled_height);
+//	rc = libjpeg_read_file_scaled(input_filename, &scaled_img,
+//				      &scaled_width, &sscaled_height);
+	img_fill_main_triangle(img, width, height,
+			       scaled_img, scaled_width, scaled_height);
 	//img_crop_lower_triangle(img, width, height);
 	img_fill_rotated_triangles(img, width, height);
 

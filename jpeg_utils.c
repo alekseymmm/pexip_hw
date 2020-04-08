@@ -12,18 +12,19 @@ JSAMPARRAY alloc_img_buf(int w, int h)
 	char **ptrs;
 
 	ptrs = malloc((sizeof(JSAMPROW)) * h);
-	for (i = 0; i < h; i++) {
+	for (i = 0; i < h; i++)
 		ptrs[i] = calloc(w, 1);
-	}
+
 	return (JSAMPARRAY)ptrs;
 }
 
 void free_img_buf(JSAMPARRAY img, int w, int h)
 {
 	int i;
-	for (i = 0; i < h; i++) {
+
+	for (i = 0; i < h; i++)
 		free(img[i]);
-	}
+
 	free(img);
 }
 
@@ -38,7 +39,7 @@ int libjpeg_read_file(char *file_name, JSAMPARRAY *img, int *width, int *height)
 	int i;
 
 	infile = fopen(file_name, "rb");
-	if (!infile){
+	if (!infile) {
 		fprintf(stderr, "can not open file: %s\n", file_name);
 		return -ENOENT;
 	}
@@ -71,7 +72,8 @@ int libjpeg_read_file(char *file_name, JSAMPARRAY *img, int *width, int *height)
 	return 0;
 }
 
-int libjpeg_read_file_scaled(char *file_name, JSAMPARRAY *img, int *width, int *height)
+int libjpeg_read_file_scaled(char *file_name, JSAMPARRAY *img,
+			     int *width, int *height)
 {
 	FILE *infile;
 	struct jpeg_decompress_struct decompress_info;
@@ -82,7 +84,7 @@ int libjpeg_read_file_scaled(char *file_name, JSAMPARRAY *img, int *width, int *
 	int i;
 
 	infile = fopen(file_name, "rb");
-	if (!infile){
+	if (!infile) {
 		fprintf(stderr, "can not open file: %s\n", file_name);
 		return -ENOENT;
 	}
@@ -126,7 +128,7 @@ int libjpeg_write_file(char *file_name, JSAMPARRAY img, int width, int height)
 	struct jpeg_error_mgr jerr;
 
 	outfile = fopen(file_name, "wb");
-	if (!outfile){
+	if (!outfile) {
 		fprintf(stderr, "can not open file: %s\n", file_name);
 		return -ENOENT;
 	}
@@ -145,9 +147,8 @@ int libjpeg_write_file(char *file_name, JSAMPARRAY img, int width, int height)
 
 	jpeg_start_compress(cinfo, TRUE);
 
-	while (cinfo->next_scanline < height) {
+	while (cinfo->next_scanline < height)
 		jpeg_write_scanlines(cinfo, &img[cinfo->next_scanline], 1);
-	}
 
 	jpeg_finish_compress(cinfo);
 	jpeg_destroy_compress(cinfo);

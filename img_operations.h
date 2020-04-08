@@ -19,7 +19,7 @@ int img_fill_triangle(JSAMPARRAY img, int width, int height, struct point *v,
 		      float angle);
 int img_fill_rotated_triangles(JSAMPARRAY img, int width, int height);
 int img_fill_main_triangle(JSAMPARRAY img, int width, int height,
-		           JSAMPARRAY scaled_img, int scaled_width,
+			   JSAMPARRAY scaled_img, int scaled_width,
 			   int scaled_height);
 
 #endif /* IMG_OPERATIONS_H_ */
