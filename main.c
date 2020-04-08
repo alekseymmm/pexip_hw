@@ -51,22 +51,21 @@ int libjpeg_read_file(char *file_name, JSAMPARRAY *img, int *width, int *height)
 	}
 
 
+
+
 	cinfo->err = jpeg_std_error(&jerr);
 	jpeg_create_decompress(cinfo);
 
 	jpeg_stdio_src(cinfo, infile);
 	jpeg_read_header(cinfo, TRUE);
+//	/cinfo->scale_num = 1;
+	//cinfo->scale_denom = 2;
 
 	jpeg_start_decompress(cinfo);
 	row_stride = cinfo->output_width * cinfo->output_components;
 
 
 	buffer = alloc_img_buf(row_stride, cinfo->output_height);
-	//buffer = cinfo->mem->alloc_sarray((j_common_ptr)cinfo, JPOOL_IMAGE, row_stride,
-	//cinfo->output_height);
-	/*
-	 * TODO error handling
-	 */
 	i = 0;
 	while (cinfo->output_scanline < cinfo->output_height) {
 		jpeg_read_scanlines(cinfo, &buffer[i], 1);
@@ -109,8 +108,9 @@ int libjpeg_write_file(char *file_name, JSAMPARRAY img, int width, int height)
 	cinfo->input_components = 3;
 	cinfo->in_color_space = JCS_RGB;
 
+
 	jpeg_set_defaults(cinfo);
-	jpeg_set_quality(cinfo, 100, TRUE);
+	//jpeg_set_quality(cinfo, 100, TRUE);
 
 	jpeg_start_compress(cinfo, TRUE);
 
@@ -402,6 +402,8 @@ int fill_triangle2(JSAMPARRAY img, int width, int height, struct point *v,
 		}
 	}
 }
+
+
 int fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 {
 	int x, y;
@@ -449,6 +451,14 @@ int fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 	v[2].x = v[0].x + x_dif;
 	v[2].y = 0;
 	fill_triangle2(img, width, height, v, true,  M_PI );
+
+
+	rotate_point(&v[2], width, height, &v[1], false);
+	fill_triangle2(img, width, height, v, true, 4 * M_PI / 3);
+
+	v[2].x = v[0].x + x_dif;
+	v[2].y = height;
+	fill_triangle2(img, width, height, v, true, - M_PI / 3);
 #if 0
 	for (i = 0; i < 4; i++) {
 //		rotate_point(&v[0], width, height, &new_v, true);
