@@ -277,7 +277,7 @@ void rotate_point(struct point *pt, int width, int height, struct point *res,
 }
 
 void rotate_point2(struct point *pt, int width, int height, struct point *res,
-			bool counterclockwise, float a)
+		   float a)
 {
 	int x_new, y_new;
 	float x_dif, y_dif;
@@ -291,13 +291,10 @@ void rotate_point2(struct point *pt, int width, int height, struct point *res,
 	x_dif = pt->x - xc;
 	//y_dif = pt->y - yc;
 	y_dif = yc - pt->y;
-	if (counterclockwise) {
+
 		x_new = xc + (x_dif * cosa - y_dif * sina);
 		y_new = yc - (x_dif * sina + y_dif * cosa);
-	} else {
-		x_new = xc + (x_dif * cosa + y_dif * sina);
-		y_new = yc - (-x_dif * sina + y_dif * cosa);
-	}
+
 	res->x = x_new;
 	res->y = y_new;
 }
@@ -377,7 +374,7 @@ int smooth_line(JSAMPARRAY img, int width, int height,
 }
 
 int fill_triangle2(JSAMPARRAY img, int width, int height, struct point *v,
-		  bool counterclockwise, float angle)
+		   float angle)
 {
 	int x, y;
 	struct point pt;
@@ -389,7 +386,7 @@ int fill_triangle2(JSAMPARRAY img, int width, int height, struct point *v,
 			if (point_in_triangle(&pt, &v[0], &v[1], &v[2])) {
 				struct point rot;
 
-				rotate_point2(&pt, width, height, &rot, counterclockwise, angle);
+				rotate_point2(&pt, width, height, &rot, angle);
 
 				if (rot.x < 0 || rot.x > width - 1)
 					continue;
@@ -439,26 +436,26 @@ int fill_rotated_triangles(JSAMPARRAY img, int width, int height)
 //	//fill first left triangle
 	v[1].x = v[0].x - x_dif;
 	v[1].y = height;
-	rotate_point(&v[1], width, height, &v[2], false);;
-	fill_triangle2(img, width, height, v, true, M_PI / 3);
+	rotate_point2(&v[1], width, height, &v[2], -M_PI / 3);;
+	fill_triangle2(img, width, height, v, M_PI / 3);
 
 	//fill second left triangle
 	v[1].x = v[0].x - x_dif;
 	v[1].y = 0;
-	//rotate_point(&v[1], width, height, &v[2], false);;
-	fill_triangle2(img, width, height, v, true, 2 * M_PI / 3);
+	fill_triangle2(img, width, height, v, 2 * M_PI / 3);
 
 	v[2].x = v[0].x + x_dif;
 	v[2].y = 0;
-	fill_triangle2(img, width, height, v, true,  M_PI );
+	fill_triangle2(img, width, height, v, 3 * M_PI / 3 );
 
 
-	rotate_point(&v[2], width, height, &v[1], false);
-	fill_triangle2(img, width, height, v, true, 4 * M_PI / 3);
+	rotate_point2(&v[2], width, height, &v[1], -M_PI / 3);
+	fill_triangle2(img, width, height, v, 4 * M_PI / 3);
 
 	v[2].x = v[0].x + x_dif;
 	v[2].y = height;
-	fill_triangle2(img, width, height, v, true, - M_PI / 3);
+	fill_triangle2(img, width, height, v, 5 * M_PI / 3);
+
 #if 0
 	for (i = 0; i < 4; i++) {
 //		rotate_point(&v[0], width, height, &new_v, true);
