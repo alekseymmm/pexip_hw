@@ -112,9 +112,20 @@ int img_fill_triangle(JSAMPARRAY img, int width, int height, struct point *v,
 {
 	int x, y;
 	struct point pt;
+	int y_min, y_max;
+	int x_min, x_max;
 
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
+	x_min = MIN(v[0].x, v[1].x);
+	x_min = MIN(x_min, v[2].x);
+	x_max = MAX(v[0].x, v[1].x);
+	x_max = MAX(x_max, v[2].x);
+
+	y_min = MIN(v[0].y, v[1].y);
+	y_min = MIN(y_min, v[2].y);
+	y_max = MAX(v[0].y, v[1].y);
+	y_max = MAX(y_max, v[2].y);
+	for (y = y_min; y < y_max; y++) {
+		for (x = x_min; x < x_max; x++) {
 			pt.x = x;
 			pt.y = y;
 			if (point_in_triangle(&pt, &v[0], &v[1], &v[2])) {
