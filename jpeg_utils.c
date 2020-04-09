@@ -11,7 +11,7 @@ JSAMPARRAY alloc_img_buf(int w, int h)
 	int i;
 	char **ptrs;
 
-	ptrs = malloc((sizeof(JSAMPROW)) * h);
+	ptrs = calloc(h, (sizeof(JSAMPROW)));
 	for (i = 0; i < h; i++)
 		ptrs[i] = calloc(w, 1);
 
@@ -126,6 +126,7 @@ int libjpeg_write_file(char *file_name, JSAMPARRAY img, int width, int height)
 	struct jpeg_compress_struct compress_info;
 	struct jpeg_compress_struct *cinfo = &compress_info;
 	struct jpeg_error_mgr jerr;
+	int i;
 
 	outfile = fopen(file_name, "wb");
 	if (!outfile) {
@@ -147,8 +148,11 @@ int libjpeg_write_file(char *file_name, JSAMPARRAY img, int width, int height)
 
 	jpeg_start_compress(cinfo, TRUE);
 
-	while (cinfo->next_scanline < height)
-		jpeg_write_scanlines(cinfo, &img[cinfo->next_scanline], 1);
+	i = 0;
+	while (cinfo->next_scanline < height) {
+		jpeg_write_scanlines(cinfo, &img[i], 1);
+		i++;
+	}
 
 	jpeg_finish_compress(cinfo);
 	jpeg_destroy_compress(cinfo);

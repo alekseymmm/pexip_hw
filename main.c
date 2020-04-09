@@ -15,12 +15,12 @@
 int main(int argc, char **argv)
 {
 	int rc = 0;
-	int width, height;
-	int scaled_width, scaled_height;
+	int width= 0, height = 0;
+	int scaled_width = 0, scaled_height = 0;
 	JSAMPARRAY img = NULL;
 	JSAMPARRAY scaled_img = NULL;
-	char *input_filename;
-	char *output_file_name;
+	char *input_filename = NULL;
+	char *output_file_name = NULL;
 
 	if (argc != 3) {
 		fprintf(stderr,

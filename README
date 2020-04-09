@@ -1,0 +1,21 @@
+1. Description
+Implementation of kaleidoscope filter for jpeg image.
+
+2. Build
+To build for debug run
+# make -C Debug
+To build without debug
+#make -C Release
+The executable will be put into the corresponding folder.
+Clean:
+#make -C <folder name> clean
+
+Note: Project depends on libjpeg-turbo library (https://github.com/libjpeg-turbo/libjpeg-turbo).
+Install devel packages on Fedora:
+# sudo dnf install libjpeg-turbo-devel
+
+3. Run program
+The program takes two arguments: <input jpeg file name> and  <output file name>. 
+# ./Release/pexip_hw <input jpg file name> <output file name>
+Example:
+# ./Release/pexip_hw jpg-example.jpg out.jpg
