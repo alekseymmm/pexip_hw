@@ -2,13 +2,13 @@
 Implementation of kaleidoscope filter for jpeg image.
 
 2. Build
-To build for debug run
+To build for debug run:
 # make -C Debug
-To build without debug
-#make -C Release
+To build without debug run:
+# make -C Release
 The executable will be put into the corresponding folder.
 Clean:
-#make -C <folder name> clean
+# make -C <Debug or Release> clean
 
 Note: Project depends on libjpeg-turbo library (https://github.com/libjpeg-turbo/libjpeg-turbo).
 Install devel packages on Fedora:
