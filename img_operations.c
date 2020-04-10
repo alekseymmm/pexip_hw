@@ -19,12 +19,14 @@ int img_rotate(JSAMPARRAY src, int width, int height, float a, JSAMPARRAY dst)
 
 	for (y_new = 0; y_new < height; y_new++) {
 		for (x_new = 0; x_new < width; x_new++) {
-			x_dif = x_new - xc;
-			//y_dif = y_new - yc;
-			y_dif = yc - y_new;
+			struct point pt, old_pt;
 
-			x_old = xc + (x_dif * cosa + y_dif * sina);
-			y_old = yc - (-x_dif * sina + y_dif * cosa);
+			pt.x = x_new;
+			pt.y = y_new;
+			rotate_point(&pt, width, height, &old_pt, -a);
+
+			x_old = old_pt.x;
+			y_old = old_pt.y;
 			if (x_old < 0 || x_old >= width)
 				continue;
 			if (y_old < 0 || y_old >= height)
